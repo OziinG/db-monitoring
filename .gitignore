@@ -1,0 +1,37 @@
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.env
+.env.local
+venv/
+.venv/
+
+# DB / Data
+*.sqlite
+*.db
+data/
+logs/
+
+# Local development code
+src/
+
+# Docker
+docker-compose.yml
+Dockerfile
+docker-entrypoint.sh
+
+# OS
+.DS_Store
+
+# Editor
+.vscode/
+.idea/
+
+# Runtime
+uvicorn.log
+
+# Static (HTML만 남기고 나머지는 무시)
+static/*
+!static/index.html
