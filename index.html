@@ -4,24 +4,31 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Database Monitoring Dashboard</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background: #f5f5f5; padding: 20px; }
         .container { max-width: 1400px; margin: 0 auto; }
         h1 { color: #333; margin-bottom: 10px; }
         .subtitle { color: #666; margin-bottom: 30px; }
-        .stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; margin-bottom: 30px; }
+        .stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 20px; margin-bottom: 30px; }
         .stat-card { background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
         .stat-card h3 { color: #666; font-size: 14px; margin-bottom: 10px; }
         .stat-card .value { color: #333; font-size: 32px; font-weight: bold; }
         .table-list { background: white; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); overflow: hidden; }
         table { width: 100%; border-collapse: collapse; }
         th { background: #f8f9fa; padding: 12px; text-align: left; font-weight: 600; color: #333; border-bottom: 2px solid #dee2e6; }
-        td { padding: 12px; border-bottom: 1px solid #f0f0f0; }
+        td { padding: 12px; border-bottom: 1px solid #f0f0f0; cursor: pointer; }
         tr:hover { background: #f8f9fa; }
         .badge { display: inline-block; padding: 4px 8px; border-radius: 4px; font-size: 12px; font-weight: 500; }
         .badge-table { background: #e3f2fd; color: #1976d2; }
         .badge-hypertable { background: #fff3e0; color: #f57c00; }
+        .compressed { opacity: 0.7; }
+        .modal { display: none; position: fixed; z-index: 1; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.4); }
+        .modal-content { background-color: #fefefe; margin: 5% auto; padding: 20px; border: 1px solid #888; width: 80%; max-width: 800px; border-radius: 8px; }
+        .close { color: #aaa; float: right; font-size: 28px; font-weight: bold; cursor: pointer; }
+        .close:hover { color: black; }
+        .chart-container { width: 100%; height: 400px; }
     </style>
 </head>
 <body>
@@ -32,43 +39,1530 @@
         <div class="stats">
             <div class="stat-card">
                 <h3>Total Tables</h3>
-                <div class="value">2</div>
+                <div class="value">151</div>
             </div>
             <div class="stat-card">
                 <h3>Total Rows</h3>
-                <div class="value">51000</div>
+                <div class="value">3112358</div>
+            </div>
+            <div class="stat-card">
+                <h3>Total Size</h3>
+                <div class="value">59.15 GB</div>
             </div>
         </div>
 
         <div class="table-list">
-            <table>
+            <table id="tables-table">
                 <thead>
                     <tr>
-                        <th>Table Name</th>
                         <th>Schema</th>
+                        <th>Table Name</th>
                         <th>Type</th>
-                        <th>Estimated Rows</th>
+                        <th>Actual Rows</th>
+                        <th>Size (GB)</th>
+                        <th>Compressed</th>
                     </tr>
                 </thead>
                 <tbody>
                     
-                    <tr>
-                        <td>users</td>
+                    <tr data-table="public.account_emailaddress" class="">
                         <td>public</td>
+                        <td>account_emailaddress</td>
                         <td><span class="badge badge-table">table</span></td>
-                        <td>1000</td>
+                        <td>0</td>
+                        <td>0.0</td>
+                        <td>No</td>
                     </tr>
                     
-                    <tr>
-                        <td>logs</td>
+                    <tr data-table="public.account_emailconfirmation" class="">
                         <td>public</td>
+                        <td>account_emailconfirmation</td>
+                        <td><span class="badge badge-table">table</span></td>
+                        <td>0</td>
+                        <td>0.0</td>
+                        <td>No</td>
+                    </tr>
+                    
+                    <tr data-table="public.announcement_attachments" class="">
+                        <td>public</td>
+                        <td>announcement_attachments</td>
+                        <td><span class="badge badge-table">table</span></td>
+                        <td>0</td>
+                        <td>0.0</td>
+                        <td>No</td>
+                    </tr>
+                    
+                    <tr data-table="public.announcement_read_statuses" class="">
+                        <td>public</td>
+                        <td>announcement_read_statuses</td>
+                        <td><span class="badge badge-table">table</span></td>
+                        <td>0</td>
+                        <td>0.0</td>
+                        <td>No</td>
+                    </tr>
+                    
+                    <tr data-table="public.announcements" class="">
+                        <td>public</td>
+                        <td>announcements</td>
+                        <td><span class="badge badge-table">table</span></td>
+                        <td>0</td>
+                        <td>0.0</td>
+                        <td>No</td>
+                    </tr>
+                    
+                    <tr data-table="public.approval_request_history" class="">
+                        <td>public</td>
+                        <td>approval_request_history</td>
+                        <td><span class="badge badge-table">table</span></td>
+                        <td>142</td>
+                        <td>0.0</td>
+                        <td>No</td>
+                    </tr>
+                    
+                    <tr data-table="public.approval_requests" class="">
+                        <td>public</td>
+                        <td>approval_requests</td>
+                        <td><span class="badge badge-table">table</span></td>
+                        <td>136</td>
+                        <td>0.0</td>
+                        <td>No</td>
+                    </tr>
+                    
+                    <tr data-table="public.approval_staged_objects" class="">
+                        <td>public</td>
+                        <td>approval_staged_objects</td>
+                        <td><span class="badge badge-table">table</span></td>
+                        <td>0</td>
+                        <td>0.0</td>
+                        <td>No</td>
+                    </tr>
+                    
+                    <tr data-table="public.approval_step_actions" class="">
+                        <td>public</td>
+                        <td>approval_step_actions</td>
+                        <td><span class="badge badge-table">table</span></td>
+                        <td>0</td>
+                        <td>0.0</td>
+                        <td>No</td>
+                    </tr>
+                    
+                    <tr data-table="public.approval_steps" class="">
+                        <td>public</td>
+                        <td>approval_steps</td>
+                        <td><span class="badge badge-table">table</span></td>
+                        <td>135</td>
+                        <td>0.0</td>
+                        <td>No</td>
+                    </tr>
+                    
+                    <tr data-table="public.approval_steps_approvers" class="">
+                        <td>public</td>
+                        <td>approval_steps_approvers</td>
+                        <td><span class="badge badge-table">table</span></td>
+                        <td>900</td>
+                        <td>0.0</td>
+                        <td>No</td>
+                    </tr>
+                    
+                    <tr data-table="public.approval_workflow_steps" class="">
+                        <td>public</td>
+                        <td>approval_workflow_steps</td>
+                        <td><span class="badge badge-table">table</span></td>
+                        <td>0</td>
+                        <td>0.0</td>
+                        <td>No</td>
+                    </tr>
+                    
+                    <tr data-table="public.approval_workflow_steps_approvers" class="">
+                        <td>public</td>
+                        <td>approval_workflow_steps_approvers</td>
+                        <td><span class="badge badge-table">table</span></td>
+                        <td>0</td>
+                        <td>0.0</td>
+                        <td>No</td>
+                    </tr>
+                    
+                    <tr data-table="public.approval_workflows" class="">
+                        <td>public</td>
+                        <td>approval_workflows</td>
+                        <td><span class="badge badge-table">table</span></td>
+                        <td>0</td>
+                        <td>0.0</td>
+                        <td>No</td>
+                    </tr>
+                    
+                    <tr data-table="public.auth_group" class="">
+                        <td>public</td>
+                        <td>auth_group</td>
+                        <td><span class="badge badge-table">table</span></td>
+                        <td>0</td>
+                        <td>0.0</td>
+                        <td>No</td>
+                    </tr>
+                    
+                    <tr data-table="public.auth_group_permissions" class="">
+                        <td>public</td>
+                        <td>auth_group_permissions</td>
+                        <td><span class="badge badge-table">table</span></td>
+                        <td>0</td>
+                        <td>0.0</td>
+                        <td>No</td>
+                    </tr>
+                    
+                    <tr data-table="public.auth_permission" class="">
+                        <td>public</td>
+                        <td>auth_permission</td>
+                        <td><span class="badge badge-table">table</span></td>
+                        <td>204</td>
+                        <td>0.0</td>
+                        <td>No</td>
+                    </tr>
+                    
+                    <tr data-table="public.authtoken_token" class="">
+                        <td>public</td>
+                        <td>authtoken_token</td>
+                        <td><span class="badge badge-table">table</span></td>
+                        <td>151</td>
+                        <td>0.0</td>
+                        <td>No</td>
+                    </tr>
+                    
+                    <tr data-table="public.company" class="">
+                        <td>public</td>
+                        <td>company</td>
+                        <td><span class="badge badge-table">table</span></td>
+                        <td>1</td>
+                        <td>0.0</td>
+                        <td>No</td>
+                    </tr>
+                    
+                    <tr data-table="public.core_businessunit" class="">
+                        <td>public</td>
+                        <td>core_businessunit</td>
+                        <td><span class="badge badge-table">table</span></td>
+                        <td>8</td>
+                        <td>0.0</td>
+                        <td>No</td>
+                    </tr>
+                    
+                    <tr data-table="public.core_client" class="">
+                        <td>public</td>
+                        <td>core_client</td>
+                        <td><span class="badge badge-table">table</span></td>
+                        <td>11</td>
+                        <td>0.0</td>
+                        <td>No</td>
+                    </tr>
+                    
+                    <tr data-table="public.core_contracttype" class="">
+                        <td>public</td>
+                        <td>core_contracttype</td>
+                        <td><span class="badge badge-table">table</span></td>
+                        <td>0</td>
+                        <td>0.0</td>
+                        <td>No</td>
+                    </tr>
+                    
+                    <tr data-table="public.core_department" class="">
+                        <td>public</td>
+                        <td>core_department</td>
+                        <td><span class="badge badge-table">table</span></td>
+                        <td>4</td>
+                        <td>0.0</td>
+                        <td>No</td>
+                    </tr>
+                    
+                    <tr data-table="public.core_fleet" class="">
+                        <td>public</td>
+                        <td>core_fleet</td>
+                        <td><span class="badge badge-table">table</span></td>
+                        <td>30</td>
+                        <td>0.0</td>
+                        <td>No</td>
+                    </tr>
+                    
+                    <tr data-table="public.core_historicaluser" class="">
+                        <td>public</td>
+                        <td>core_historicaluser</td>
+                        <td><span class="badge badge-table">table</span></td>
+                        <td>2772</td>
+                        <td>0.0</td>
+                        <td>No</td>
+                    </tr>
+                    
+                    <tr data-table="public.core_position" class="">
+                        <td>public</td>
+                        <td>core_position</td>
+                        <td><span class="badge badge-table">table</span></td>
+                        <td>3</td>
+                        <td>0.0</td>
+                        <td>No</td>
+                    </tr>
+                    
+                    <tr data-table="public.core_user" class="">
+                        <td>public</td>
+                        <td>core_user</td>
+                        <td><span class="badge badge-table">table</span></td>
+                        <td>267</td>
+                        <td>0.0</td>
+                        <td>No</td>
+                    </tr>
+                    
+                    <tr data-table="public.dashboard_additionaloption" class="">
+                        <td>public</td>
+                        <td>dashboard_additionaloption</td>
+                        <td><span class="badge badge-table">table</span></td>
+                        <td>0</td>
+                        <td>0.0</td>
+                        <td>No</td>
+                    </tr>
+                    
+                    <tr data-table="public.dashboard_dashboarddata" class="">
+                        <td>public</td>
+                        <td>dashboard_dashboarddata</td>
+                        <td><span class="badge badge-table">table</span></td>
+                        <td>170</td>
+                        <td>0.0</td>
+                        <td>No</td>
+                    </tr>
+                    
+                    <tr data-table="public.dashboard_dashboarddata_delivery_logs" class="">
+                        <td>public</td>
+                        <td>dashboard_dashboarddata_delivery_logs</td>
+                        <td><span class="badge badge-table">table</span></td>
+                        <td>69</td>
+                        <td>0.0</td>
+                        <td>No</td>
+                    </tr>
+                    
+                    <tr data-table="public.dashboard_dashboarddata_google_fitness_datas" class="">
+                        <td>public</td>
+                        <td>dashboard_dashboarddata_google_fitness_datas</td>
+                        <td><span class="badge badge-table">table</span></td>
+                        <td>559</td>
+                        <td>0.0</td>
+                        <td>No</td>
+                    </tr>
+                    
+                    <tr data-table="public.dashboard_device" class="">
+                        <td>public</td>
+                        <td>dashboard_device</td>
+                        <td><span class="badge badge-table">table</span></td>
+                        <td>6</td>
+                        <td>0.0</td>
+                        <td>No</td>
+                    </tr>
+                    
+                    <tr data-table="public.dashboard_diagnostic" class="">
+                        <td>public</td>
+                        <td>dashboard_diagnostic</td>
+                        <td><span class="badge badge-table">table</span></td>
+                        <td>47215</td>
+                        <td>0.03</td>
+                        <td>No</td>
+                    </tr>
+                    
+                    <tr data-table="public.dashboard_driver" class="">
+                        <td>public</td>
+                        <td>dashboard_driver</td>
+                        <td><span class="badge badge-table">table</span></td>
+                        <td>0</td>
+                        <td>0.0</td>
+                        <td>No</td>
+                    </tr>
+                    
+                    <tr data-table="public.dashboard_faultcode" class="">
+                        <td>public</td>
+                        <td>dashboard_faultcode</td>
+                        <td><span class="badge badge-table">table</span></td>
+                        <td>261</td>
+                        <td>0.0</td>
+                        <td>No</td>
+                    </tr>
+                    
+                    <tr data-table="public.dashboard_googlefitnessdata" class="">
+                        <td>public</td>
+                        <td>dashboard_googlefitnessdata</td>
+                        <td><span class="badge badge-table">table</span></td>
+                        <td>57083</td>
+                        <td>0.03</td>
+                        <td>No</td>
+                    </tr>
+                    
+                    <tr data-table="public.dashboard_handoverchecklistitem" class="">
+                        <td>public</td>
+                        <td>dashboard_handoverchecklistitem</td>
+                        <td><span class="badge badge-table">table</span></td>
+                        <td>38</td>
+                        <td>0.0</td>
+                        <td>No</td>
+                    </tr>
+                    
+                    <tr data-table="public.dashboard_handoverchecklistresponse" class="">
+                        <td>public</td>
+                        <td>dashboard_handoverchecklistresponse</td>
+                        <td><span class="badge badge-table">table</span></td>
+                        <td>114</td>
+                        <td>0.0</td>
+                        <td>No</td>
+                    </tr>
+                    
+                    <tr data-table="public.dashboard_handoverchecklisttemplate" class="">
+                        <td>public</td>
+                        <td>dashboard_handoverchecklisttemplate</td>
+                        <td><span class="badge badge-table">table</span></td>
+                        <td>6</td>
+                        <td>0.0</td>
+                        <td>No</td>
+                    </tr>
+                    
+                    <tr data-table="public.dashboard_handoverphoto" class="">
+                        <td>public</td>
+                        <td>dashboard_handoverphoto</td>
+                        <td><span class="badge badge-table">table</span></td>
+                        <td>13</td>
+                        <td>0.0</td>
+                        <td>No</td>
+                    </tr>
+                    
+                    <tr data-table="public.dashboard_handoverrecord" class="">
+                        <td>public</td>
+                        <td>dashboard_handoverrecord</td>
+                        <td><span class="badge badge-table">table</span></td>
+                        <td>39</td>
+                        <td>0.0</td>
+                        <td>No</td>
+                    </tr>
+                    
+                    <tr data-table="public.dashboard_mapping" class="">
+                        <td>public</td>
+                        <td>dashboard_mapping</td>
+                        <td><span class="badge badge-table">table</span></td>
+                        <td>4</td>
+                        <td>0.0</td>
+                        <td>No</td>
+                    </tr>
+                    
+                    <tr data-table="public.dashboard_terminal" class="">
+                        <td>public</td>
+                        <td>dashboard_terminal</td>
+                        <td><span class="badge badge-table">table</span></td>
+                        <td>197</td>
+                        <td>0.01</td>
+                        <td>No</td>
+                    </tr>
+                    
+                    <tr data-table="public.dashboard_terminal_additional_options" class="">
+                        <td>public</td>
+                        <td>dashboard_terminal_additional_options</td>
+                        <td><span class="badge badge-table">table</span></td>
+                        <td>234</td>
+                        <td>0.0</td>
+                        <td>No</td>
+                    </tr>
+                    
+                    <tr data-table="public.dashboard_terminalfleetchangelog" class="">
+                        <td>public</td>
+                        <td>dashboard_terminalfleetchangelog</td>
+                        <td><span class="badge badge-table">table</span></td>
+                        <td>249</td>
+                        <td>0.0</td>
+                        <td>No</td>
+                    </tr>
+                    
+                    <tr data-table="public.dashboard_terminaloptionchangelog" class="">
+                        <td>public</td>
+                        <td>dashboard_terminaloptionchangelog</td>
+                        <td><span class="badge badge-table">table</span></td>
+                        <td>0</td>
+                        <td>0.0</td>
+                        <td>No</td>
+                    </tr>
+                    
+                    <tr data-table="public.dashboard_terminaluserchangelog" class="">
+                        <td>public</td>
+                        <td>dashboard_terminaluserchangelog</td>
+                        <td><span class="badge badge-table">table</span></td>
+                        <td>338</td>
+                        <td>0.0</td>
+                        <td>No</td>
+                    </tr>
+                    
+                    <tr data-table="public.dashboard_tid" class="">
+                        <td>public</td>
+                        <td>dashboard_tid</td>
+                        <td><span class="badge badge-table">table</span></td>
+                        <td>900505</td>
+                        <td>0.34</td>
+                        <td>No</td>
+                    </tr>
+                    
+                    <tr data-table="public.dashboard_topoptionchoice" class="">
+                        <td>public</td>
+                        <td>dashboard_topoptionchoice</td>
+                        <td><span class="badge badge-table">table</span></td>
+                        <td>0</td>
+                        <td>0.0</td>
+                        <td>No</td>
+                    </tr>
+                    
+                    <tr data-table="public.dashboard_truckdata" class="">
+                        <td>public</td>
+                        <td>dashboard_truckdata</td>
                         <td><span class="badge badge-hypertable">hypertable</span></td>
-                        <td>50000</td>
+                        <td>0</td>
+                        <td>54.87</td>
+                        <td>No</td>
+                    </tr>
+                    
+                    <tr data-table="public.dashboard_vehiclemodel" class="">
+                        <td>public</td>
+                        <td>dashboard_vehiclemodel</td>
+                        <td><span class="badge badge-table">table</span></td>
+                        <td>11</td>
+                        <td>0.0</td>
+                        <td>No</td>
+                    </tr>
+                    
+                    <tr data-table="public.delivery_deliverylist" class="">
+                        <td>public</td>
+                        <td>delivery_deliverylist</td>
+                        <td><span class="badge badge-table">table</span></td>
+                        <td>6</td>
+                        <td>0.0</td>
+                        <td>No</td>
+                    </tr>
+                    
+                    <tr data-table="public.delivery_deliverylistshippingaddress" class="">
+                        <td>public</td>
+                        <td>delivery_deliverylistshippingaddress</td>
+                        <td><span class="badge badge-table">table</span></td>
+                        <td>137</td>
+                        <td>0.0</td>
+                        <td>No</td>
+                    </tr>
+                    
+                    <tr data-table="public.delivery_deliverylog" class="">
+                        <td>public</td>
+                        <td>delivery_deliverylog</td>
+                        <td><span class="badge badge-table">table</span></td>
+                        <td>2114</td>
+                        <td>0.0</td>
+                        <td>No</td>
+                    </tr>
+                    
+                    <tr data-table="public.delivery_stophistory" class="">
+                        <td>public</td>
+                        <td>delivery_stophistory</td>
+                        <td><span class="badge badge-table">table</span></td>
+                        <td>0</td>
+                        <td>0.0</td>
+                        <td>No</td>
+                    </tr>
+                    
+                    <tr data-table="public.django_admin_log" class="">
+                        <td>public</td>
+                        <td>django_admin_log</td>
+                        <td><span class="badge badge-table">table</span></td>
+                        <td>475606</td>
+                        <td>0.08</td>
+                        <td>No</td>
+                    </tr>
+                    
+                    <tr data-table="public.django_content_type" class="">
+                        <td>public</td>
+                        <td>django_content_type</td>
+                        <td><span class="badge badge-table">table</span></td>
+                        <td>0</td>
+                        <td>0.0</td>
+                        <td>No</td>
+                    </tr>
+                    
+                    <tr data-table="public.django_migrations" class="">
+                        <td>public</td>
+                        <td>django_migrations</td>
+                        <td><span class="badge badge-table">table</span></td>
+                        <td>305</td>
+                        <td>0.0</td>
+                        <td>No</td>
+                    </tr>
+                    
+                    <tr data-table="public.django_session" class="">
+                        <td>public</td>
+                        <td>django_session</td>
+                        <td><span class="badge badge-table">table</span></td>
+                        <td>281</td>
+                        <td>0.0</td>
+                        <td>No</td>
+                    </tr>
+                    
+                    <tr data-table="public.django_site" class="">
+                        <td>public</td>
+                        <td>django_site</td>
+                        <td><span class="badge badge-table">table</span></td>
+                        <td>0</td>
+                        <td>0.0</td>
+                        <td>No</td>
+                    </tr>
+                    
+                    <tr data-table="public.documents_accountinformation" class="">
+                        <td>public</td>
+                        <td>documents_accountinformation</td>
+                        <td><span class="badge badge-table">table</span></td>
+                        <td>798</td>
+                        <td>0.0</td>
+                        <td>No</td>
+                    </tr>
+                    
+                    <tr data-table="public.documents_additionaladjustment" class="">
+                        <td>public</td>
+                        <td>documents_additionaladjustment</td>
+                        <td><span class="badge badge-table">table</span></td>
+                        <td>705</td>
+                        <td>0.0</td>
+                        <td>No</td>
+                    </tr>
+                    
+                    <tr data-table="public.documents_annualleave" class="">
+                        <td>public</td>
+                        <td>documents_annualleave</td>
+                        <td><span class="badge badge-table">table</span></td>
+                        <td>143</td>
+                        <td>0.0</td>
+                        <td>No</td>
+                    </tr>
+                    
+                    <tr data-table="public.documents_annualleaveusage" class="">
+                        <td>public</td>
+                        <td>documents_annualleaveusage</td>
+                        <td><span class="badge badge-table">table</span></td>
+                        <td>100</td>
+                        <td>0.0</td>
+                        <td>No</td>
+                    </tr>
+                    
+                    <tr data-table="public.documents_attendance" class="">
+                        <td>public</td>
+                        <td>documents_attendance</td>
+                        <td><span class="badge badge-table">table</span></td>
+                        <td>40997</td>
+                        <td>0.03</td>
+                        <td>No</td>
+                    </tr>
+                    
+                    <tr data-table="public.documents_businessregistrationinformation" class="">
+                        <td>public</td>
+                        <td>documents_businessregistrationinformation</td>
+                        <td><span class="badge badge-table">table</span></td>
+                        <td>1113</td>
+                        <td>0.0</td>
+                        <td>No</td>
+                    </tr>
+                    
+                    <tr data-table="public.documents_claimlist" class="">
+                        <td>public</td>
+                        <td>documents_claimlist</td>
+                        <td><span class="badge badge-table">table</span></td>
+                        <td>319</td>
+                        <td>0.0</td>
+                        <td>No</td>
+                    </tr>
+                    
+                    <tr data-table="public.documents_contracttypechangelog" class="">
+                        <td>public</td>
+                        <td>documents_contracttypechangelog</td>
+                        <td><span class="badge badge-table">table</span></td>
+                        <td>341</td>
+                        <td>0.0</td>
+                        <td>No</td>
+                    </tr>
+                    
+                    <tr data-table="public.documents_dailysettlement" class="">
+                        <td>public</td>
+                        <td>documents_dailysettlement</td>
+                        <td><span class="badge badge-table">table</span></td>
+                        <td>56234</td>
+                        <td>0.08</td>
+                        <td>No</td>
+                    </tr>
+                    
+                    <tr data-table="public.documents_document" class="">
+                        <td>public</td>
+                        <td>documents_document</td>
+                        <td><span class="badge badge-table">table</span></td>
+                        <td>904</td>
+                        <td>0.0</td>
+                        <td>No</td>
+                    </tr>
+                    
+                    <tr data-table="public.documents_evdeliveryfile" class="">
+                        <td>public</td>
+                        <td>documents_evdeliveryfile</td>
+                        <td><span class="badge badge-table">table</span></td>
+                        <td>7</td>
+                        <td>0.0</td>
+                        <td>No</td>
+                    </tr>
+                    
+                    <tr data-table="public.documents_evdeliverylog" class="">
+                        <td>public</td>
+                        <td>documents_evdeliverylog</td>
+                        <td><span class="badge badge-table">table</span></td>
+                        <td>113371</td>
+                        <td>0.06</td>
+                        <td>No</td>
+                    </tr>
+                    
+                    <tr data-table="public.documents_fleetchangelog" class="">
+                        <td>public</td>
+                        <td>documents_fleetchangelog</td>
+                        <td><span class="badge badge-table">table</span></td>
+                        <td>0</td>
+                        <td>0.0</td>
+                        <td>No</td>
+                    </tr>
+                    
+                    <tr data-table="public.documents_group" class="">
+                        <td>public</td>
+                        <td>documents_group</td>
+                        <td><span class="badge badge-table">table</span></td>
+                        <td>24</td>
+                        <td>0.0</td>
+                        <td>No</td>
+                    </tr>
+                    
+                    <tr data-table="public.documents_groupchangelog" class="">
+                        <td>public</td>
+                        <td>documents_groupchangelog</td>
+                        <td><span class="badge badge-table">table</span></td>
+                        <td>0</td>
+                        <td>0.0</td>
+                        <td>No</td>
+                    </tr>
+                    
+                    <tr data-table="public.documents_groupsettlement" class="">
+                        <td>public</td>
+                        <td>documents_groupsettlement</td>
+                        <td><span class="badge badge-table">table</span></td>
+                        <td>2039</td>
+                        <td>0.0</td>
+                        <td>No</td>
+                    </tr>
+                    
+                    <tr data-table="public.documents_historicaldailysettlement" class="">
+                        <td>public</td>
+                        <td>documents_historicaldailysettlement</td>
+                        <td><span class="badge badge-table">table</span></td>
+                        <td>1162134</td>
+                        <td>0.73</td>
+                        <td>No</td>
+                    </tr>
+                    
+                    <tr data-table="public.documents_historicaldocument" class="">
+                        <td>public</td>
+                        <td>documents_historicaldocument</td>
+                        <td><span class="badge badge-table">table</span></td>
+                        <td>2122</td>
+                        <td>0.0</td>
+                        <td>No</td>
+                    </tr>
+                    
+                    <tr data-table="public.documents_historicalgroupsettlement" class="">
+                        <td>public</td>
+                        <td>documents_historicalgroupsettlement</td>
+                        <td><span class="badge badge-table">table</span></td>
+                        <td>32813</td>
+                        <td>0.01</td>
+                        <td>No</td>
+                    </tr>
+                    
+                    <tr data-table="public.documents_historicalmonthlysettlement" class="">
+                        <td>public</td>
+                        <td>documents_historicalmonthlysettlement</td>
+                        <td><span class="badge badge-table">table</span></td>
+                        <td>17907</td>
+                        <td>0.02</td>
+                        <td>No</td>
+                    </tr>
+                    
+                    <tr data-table="public.documents_historicalsettlementpolicy" class="">
+                        <td>public</td>
+                        <td>documents_historicalsettlementpolicy</td>
+                        <td><span class="badge badge-table">table</span></td>
+                        <td>258</td>
+                        <td>0.0</td>
+                        <td>No</td>
+                    </tr>
+                    
+                    <tr data-table="public.documents_incentive" class="">
+                        <td>public</td>
+                        <td>documents_incentive</td>
+                        <td><span class="badge badge-table">table</span></td>
+                        <td>72</td>
+                        <td>0.0</td>
+                        <td>No</td>
+                    </tr>
+                    
+                    <tr data-table="public.documents_latedeliverylog" class="">
+                        <td>public</td>
+                        <td>documents_latedeliverylog</td>
+                        <td><span class="badge badge-table">table</span></td>
+                        <td>4764</td>
+                        <td>0.0</td>
+                        <td>No</td>
+                    </tr>
+                    
+                    <tr data-table="public.documents_monthlysettlement" class="">
+                        <td>public</td>
+                        <td>documents_monthlysettlement</td>
+                        <td><span class="badge badge-table">table</span></td>
+                        <td>1467</td>
+                        <td>0.0</td>
+                        <td>No</td>
+                    </tr>
+                    
+                    <tr data-table="public.documents_outsourcinghistory" class="">
+                        <td>public</td>
+                        <td>documents_outsourcinghistory</td>
+                        <td><span class="badge badge-table">table</span></td>
+                        <td>5129</td>
+                        <td>0.0</td>
+                        <td>No</td>
+                    </tr>
+                    
+                    <tr data-table="public.documents_price" class="">
+                        <td>public</td>
+                        <td>documents_price</td>
+                        <td><span class="badge badge-table">table</span></td>
+                        <td>8</td>
+                        <td>0.0</td>
+                        <td>No</td>
+                    </tr>
+                    
+                    <tr data-table="public.documents_settlementovertimepolicy" class="">
+                        <td>public</td>
+                        <td>documents_settlementovertimepolicy</td>
+                        <td><span class="badge badge-table">table</span></td>
+                        <td>4</td>
+                        <td>0.0</td>
+                        <td>No</td>
+                    </tr>
+                    
+                    <tr data-table="public.documents_settlementpolicy" class="">
+                        <td>public</td>
+                        <td>documents_settlementpolicy</td>
+                        <td><span class="badge badge-table">table</span></td>
+                        <td>135</td>
+                        <td>0.0</td>
+                        <td>No</td>
+                    </tr>
+                    
+                    <tr data-table="public.documents_systemconfig" class="">
+                        <td>public</td>
+                        <td>documents_systemconfig</td>
+                        <td><span class="badge badge-table">table</span></td>
+                        <td>20</td>
+                        <td>0.0</td>
+                        <td>No</td>
+                    </tr>
+                    
+                    <tr data-table="public.documents_team" class="">
+                        <td>public</td>
+                        <td>documents_team</td>
+                        <td><span class="badge badge-table">table</span></td>
+                        <td>10</td>
+                        <td>0.0</td>
+                        <td>No</td>
+                    </tr>
+                    
+                    <tr data-table="public.documents_vehichlerentalfee" class="">
+                        <td>public</td>
+                        <td>documents_vehichlerentalfee</td>
+                        <td><span class="badge badge-table">table</span></td>
+                        <td>16</td>
+                        <td>0.0</td>
+                        <td>No</td>
+                    </tr>
+                    
+                    <tr data-table="public.driver_location_driverlocation" class="">
+                        <td>public</td>
+                        <td>driver_location_driverlocation</td>
+                        <td><span class="badge badge-hypertable">hypertable</span></td>
+                        <td>0</td>
+                        <td>0.09</td>
+                        <td>No</td>
+                    </tr>
+                    
+                    <tr data-table="public.email_service_emaillog" class="">
+                        <td>public</td>
+                        <td>email_service_emaillog</td>
+                        <td><span class="badge badge-table">table</span></td>
+                        <td>254</td>
+                        <td>0.0</td>
+                        <td>No</td>
+                    </tr>
+                    
+                    <tr data-table="public.email_service_emailtemplate" class="">
+                        <td>public</td>
+                        <td>email_service_emailtemplate</td>
+                        <td><span class="badge badge-table">table</span></td>
+                        <td>0</td>
+                        <td>0.0</td>
+                        <td>No</td>
+                    </tr>
+                    
+                    <tr data-table="public.invoice_invoice" class="">
+                        <td>public</td>
+                        <td>invoice_invoice</td>
+                        <td><span class="badge badge-table">table</span></td>
+                        <td>0</td>
+                        <td>0.0</td>
+                        <td>No</td>
+                    </tr>
+                    
+                    <tr data-table="public.invoice_invoiceocrconfig" class="">
+                        <td>public</td>
+                        <td>invoice_invoiceocrconfig</td>
+                        <td><span class="badge badge-table">table</span></td>
+                        <td>0</td>
+                        <td>0.0</td>
+                        <td>No</td>
+                    </tr>
+                    
+                    <tr data-table="public.invoice_invoiceprocessinglog" class="">
+                        <td>public</td>
+                        <td>invoice_invoiceprocessinglog</td>
+                        <td><span class="badge badge-table">table</span></td>
+                        <td>0</td>
+                        <td>0.0</td>
+                        <td>No</td>
+                    </tr>
+                    
+                    <tr data-table="public.mqtt_mqttdata" class="compressed">
+                        <td>public</td>
+                        <td>mqtt_mqttdata</td>
+                        <td><span class="badge badge-hypertable">hypertable</span></td>
+                        <td>0</td>
+                        <td>2.47</td>
+                        <td>Yes</td>
+                    </tr>
+                    
+                    <tr data-table="public.mqtt_sensor" class="">
+                        <td>public</td>
+                        <td>mqtt_sensor</td>
+                        <td><span class="badge badge-table">table</span></td>
+                        <td>0</td>
+                        <td>0.0</td>
+                        <td>No</td>
+                    </tr>
+                    
+                    <tr data-table="public.notifications" class="">
+                        <td>public</td>
+                        <td>notifications</td>
+                        <td><span class="badge badge-table">table</span></td>
+                        <td>4274</td>
+                        <td>0.0</td>
+                        <td>No</td>
+                    </tr>
+                    
+                    <tr data-table="public.otp_auth_otpverification" class="">
+                        <td>public</td>
+                        <td>otp_auth_otpverification</td>
+                        <td><span class="badge badge-table">table</span></td>
+                        <td>85</td>
+                        <td>0.0</td>
+                        <td>No</td>
+                    </tr>
+                    
+                    <tr data-table="public.parking_csv_upload" class="">
+                        <td>public</td>
+                        <td>parking_csv_upload</td>
+                        <td><span class="badge badge-table">table</span></td>
+                        <td>0</td>
+                        <td>0.0</td>
+                        <td>No</td>
+                    </tr>
+                    
+                    <tr data-table="public.push_notification_logs" class="">
+                        <td>public</td>
+                        <td>push_notification_logs</td>
+                        <td><span class="badge badge-table">table</span></td>
+                        <td>2905</td>
+                        <td>0.0</td>
+                        <td>No</td>
+                    </tr>
+                    
+                    <tr data-table="public.push_notification_templates" class="">
+                        <td>public</td>
+                        <td>push_notification_templates</td>
+                        <td><span class="badge badge-table">table</span></td>
+                        <td>0</td>
+                        <td>0.0</td>
+                        <td>No</td>
+                    </tr>
+                    
+                    <tr data-table="public.recommended_parking" class="">
+                        <td>public</td>
+                        <td>recommended_parking</td>
+                        <td><span class="badge badge-table">table</span></td>
+                        <td>9188</td>
+                        <td>0.02</td>
+                        <td>No</td>
+                    </tr>
+                    
+                    <tr data-table="public.schedule_attendancedetaillog" class="">
+                        <td>public</td>
+                        <td>schedule_attendancedetaillog</td>
+                        <td><span class="badge badge-table">table</span></td>
+                        <td>1344</td>
+                        <td>0.0</td>
+                        <td>No</td>
+                    </tr>
+                    
+                    <tr data-table="public.schedule_blelog" class="">
+                        <td>public</td>
+                        <td>schedule_blelog</td>
+                        <td><span class="badge badge-hypertable">hypertable</span></td>
+                        <td>0</td>
+                        <td>0.09</td>
+                        <td>No</td>
+                    </tr>
+                    
+                    <tr data-table="public.schedule_cameralog" class="">
+                        <td>public</td>
+                        <td>schedule_cameralog</td>
+                        <td><span class="badge badge-hypertable">hypertable</span></td>
+                        <td>0</td>
+                        <td>0.01</td>
+                        <td>No</td>
+                    </tr>
+                    
+                    <tr data-table="public.schedule_driversteplog" class="">
+                        <td>public</td>
+                        <td>schedule_driversteplog</td>
+                        <td><span class="badge badge-hypertable">hypertable</span></td>
+                        <td>0</td>
+                        <td>0.01</td>
+                        <td>No</td>
+                    </tr>
+                    
+                    <tr data-table="public.schedule_drivervehiclematch" class="">
+                        <td>public</td>
+                        <td>schedule_drivervehiclematch</td>
+                        <td><span class="badge badge-table">table</span></td>
+                        <td>432</td>
+                        <td>0.0</td>
+                        <td>No</td>
+                    </tr>
+                    
+                    <tr data-table="public.schedule_leaverequest" class="">
+                        <td>public</td>
+                        <td>schedule_leaverequest</td>
+                        <td><span class="badge badge-table">table</span></td>
+                        <td>0</td>
+                        <td>0.0</td>
+                        <td>No</td>
+                    </tr>
+                    
+                    <tr data-table="public.schedule_monthlyworkdays" class="">
+                        <td>public</td>
+                        <td>schedule_monthlyworkdays</td>
+                        <td><span class="badge badge-table">table</span></td>
+                        <td>83</td>
+                        <td>0.0</td>
+                        <td>No</td>
+                    </tr>
+                    
+                    <tr data-table="public.schedule_nationalholiday" class="">
+                        <td>public</td>
+                        <td>schedule_nationalholiday</td>
+                        <td><span class="badge badge-table">table</span></td>
+                        <td>0</td>
+                        <td>0.0</td>
+                        <td>No</td>
+                    </tr>
+                    
+                    <tr data-table="public.schedule_shiftrequest" class="">
+                        <td>public</td>
+                        <td>schedule_shiftrequest</td>
+                        <td><span class="badge badge-table">table</span></td>
+                        <td>0</td>
+                        <td>0.0</td>
+                        <td>No</td>
+                    </tr>
+                    
+                    <tr data-table="public.schedule_shiftschedule" class="">
+                        <td>public</td>
+                        <td>schedule_shiftschedule</td>
+                        <td><span class="badge badge-table">table</span></td>
+                        <td>91</td>
+                        <td>0.0</td>
+                        <td>No</td>
+                    </tr>
+                    
+                    <tr data-table="public.schedule_vehicleschedule" class="">
+                        <td>public</td>
+                        <td>schedule_vehicleschedule</td>
+                        <td><span class="badge badge-table">table</span></td>
+                        <td>53</td>
+                        <td>0.0</td>
+                        <td>No</td>
+                    </tr>
+                    
+                    <tr data-table="public.social_auth_socialaccount" class="">
+                        <td>public</td>
+                        <td>social_auth_socialaccount</td>
+                        <td><span class="badge badge-table">table</span></td>
+                        <td>91</td>
+                        <td>0.0</td>
+                        <td>No</td>
+                    </tr>
+                    
+                    <tr data-table="public.socialaccount_socialaccount" class="">
+                        <td>public</td>
+                        <td>socialaccount_socialaccount</td>
+                        <td><span class="badge badge-table">table</span></td>
+                        <td>0</td>
+                        <td>0.0</td>
+                        <td>No</td>
+                    </tr>
+                    
+                    <tr data-table="public.socialaccount_socialapp" class="">
+                        <td>public</td>
+                        <td>socialaccount_socialapp</td>
+                        <td><span class="badge badge-table">table</span></td>
+                        <td>0</td>
+                        <td>0.0</td>
+                        <td>No</td>
+                    </tr>
+                    
+                    <tr data-table="public.socialaccount_socialapp_sites" class="">
+                        <td>public</td>
+                        <td>socialaccount_socialapp_sites</td>
+                        <td><span class="badge badge-table">table</span></td>
+                        <td>0</td>
+                        <td>0.0</td>
+                        <td>No</td>
+                    </tr>
+                    
+                    <tr data-table="public.socialaccount_socialtoken" class="">
+                        <td>public</td>
+                        <td>socialaccount_socialtoken</td>
+                        <td><span class="badge badge-table">table</span></td>
+                        <td>0</td>
+                        <td>0.0</td>
+                        <td>No</td>
+                    </tr>
+                    
+                    <tr data-table="public.talentpool_candidate" class="">
+                        <td>public</td>
+                        <td>talentpool_candidate</td>
+                        <td><span class="badge badge-table">table</span></td>
+                        <td>6</td>
+                        <td>0.0</td>
+                        <td>No</td>
+                    </tr>
+                    
+                    <tr data-table="public.talentpool_candidate_tag" class="">
+                        <td>public</td>
+                        <td>talentpool_candidate_tag</td>
+                        <td><span class="badge badge-table">table</span></td>
+                        <td>0</td>
+                        <td>0.0</td>
+                        <td>No</td>
+                    </tr>
+                    
+                    <tr data-table="public.talentpool_status" class="">
+                        <td>public</td>
+                        <td>talentpool_status</td>
+                        <td><span class="badge badge-table">table</span></td>
+                        <td>0</td>
+                        <td>0.0</td>
+                        <td>No</td>
+                    </tr>
+                    
+                    <tr data-table="public.talentpool_status_change" class="">
+                        <td>public</td>
+                        <td>talentpool_status_change</td>
+                        <td><span class="badge badge-table">table</span></td>
+                        <td>37</td>
+                        <td>0.0</td>
+                        <td>No</td>
+                    </tr>
+                    
+                    <tr data-table="public.talentpool_tag" class="">
+                        <td>public</td>
+                        <td>talentpool_tag</td>
+                        <td><span class="badge badge-table">table</span></td>
+                        <td>0</td>
+                        <td>0.0</td>
+                        <td>No</td>
+                    </tr>
+                    
+                    <tr data-table="public.talentpool_timeline" class="">
+                        <td>public</td>
+                        <td>talentpool_timeline</td>
+                        <td><span class="badge badge-table">table</span></td>
+                        <td>0</td>
+                        <td>0.0</td>
+                        <td>No</td>
+                    </tr>
+                    
+                    <tr data-table="public.ticket_ticket" class="">
+                        <td>public</td>
+                        <td>ticket_ticket</td>
+                        <td><span class="badge badge-table">table</span></td>
+                        <td>268</td>
+                        <td>0.0</td>
+                        <td>No</td>
+                    </tr>
+                    
+                    <tr data-table="public.ticket_ticketresponse" class="">
+                        <td>public</td>
+                        <td>ticket_ticketresponse</td>
+                        <td><span class="badge badge-table">table</span></td>
+                        <td>171</td>
+                        <td>0.0</td>
+                        <td>No</td>
+                    </tr>
+                    
+                    <tr data-table="public.tip_deliverylocation" class="">
+                        <td>public</td>
+                        <td>tip_deliverylocation</td>
+                        <td><span class="badge badge-table">table</span></td>
+                        <td>29</td>
+                        <td>0.0</td>
+                        <td>No</td>
+                    </tr>
+                    
+                    <tr data-table="public.tip_entrance" class="">
+                        <td>public</td>
+                        <td>tip_entrance</td>
+                        <td><span class="badge badge-table">table</span></td>
+                        <td>51020</td>
+                        <td>0.03</td>
+                        <td>No</td>
+                    </tr>
+                    
+                    <tr data-table="public.tip_exit" class="">
+                        <td>public</td>
+                        <td>tip_exit</td>
+                        <td><span class="badge badge-table">table</span></td>
+                        <td>0</td>
+                        <td>0.0</td>
+                        <td>No</td>
+                    </tr>
+                    
+                    <tr data-table="public.tip_feedbackmarker" class="">
+                        <td>public</td>
+                        <td>tip_feedbackmarker</td>
+                        <td><span class="badge badge-table">table</span></td>
+                        <td>0</td>
+                        <td>0.0</td>
+                        <td>No</td>
+                    </tr>
+                    
+                    <tr data-table="public.tip_parkinglot" class="">
+                        <td>public</td>
+                        <td>tip_parkinglot</td>
+                        <td><span class="badge badge-table">table</span></td>
+                        <td>51024</td>
+                        <td>0.04</td>
+                        <td>No</td>
+                    </tr>
+                    
+                    <tr data-table="public.tip_recommendedparkingarea" class="">
+                        <td>public</td>
+                        <td>tip_recommendedparkingarea</td>
+                        <td><span class="badge badge-table">table</span></td>
+                        <td>0</td>
+                        <td>0.0</td>
+                        <td>No</td>
+                    </tr>
+                    
+                    <tr data-table="public.tip_restrictedarea" class="">
+                        <td>public</td>
+                        <td>tip_restrictedarea</td>
+                        <td><span class="badge badge-table">table</span></td>
+                        <td>100</td>
+                        <td>0.0</td>
+                        <td>No</td>
+                    </tr>
+                    
+                    <tr data-table="public.tip_stopreport" class="">
+                        <td>public</td>
+                        <td>tip_stopreport</td>
+                        <td><span class="badge badge-table">table</span></td>
+                        <td>121</td>
+                        <td>0.0</td>
+                        <td>No</td>
+                    </tr>
+                    
+                    <tr data-table="public.tip_tip" class="">
+                        <td>public</td>
+                        <td>tip_tip</td>
+                        <td><span class="badge badge-table">table</span></td>
+                        <td>55813</td>
+                        <td>0.1</td>
+                        <td>No</td>
+                    </tr>
+                    
+                    <tr data-table="public.tip_tipfavorite" class="">
+                        <td>public</td>
+                        <td>tip_tipfavorite</td>
+                        <td><span class="badge badge-table">table</span></td>
+                        <td>40</td>
+                        <td>0.0</td>
+                        <td>No</td>
+                    </tr>
+                    
+                    <tr data-table="public.tip_tipphoto" class="">
+                        <td>public</td>
+                        <td>tip_tipphoto</td>
+                        <td><span class="badge badge-table">table</span></td>
+                        <td>54</td>
+                        <td>0.0</td>
+                        <td>No</td>
+                    </tr>
+                    
+                    <tr data-table="public.user_fcm_tokens" class="">
+                        <td>public</td>
+                        <td>user_fcm_tokens</td>
+                        <td><span class="badge badge-table">table</span></td>
+                        <td>165</td>
+                        <td>0.0</td>
+                        <td>No</td>
+                    </tr>
+                    
+                    <tr data-table="public.vehicle_accidentreportphoto" class="">
+                        <td>public</td>
+                        <td>vehicle_accidentreportphoto</td>
+                        <td><span class="badge badge-table">table</span></td>
+                        <td>0</td>
+                        <td>0.0</td>
+                        <td>No</td>
+                    </tr>
+                    
+                    <tr data-table="public.vehicle_serviceinquiryinvoice" class="">
+                        <td>public</td>
+                        <td>vehicle_serviceinquiryinvoice</td>
+                        <td><span class="badge badge-table">table</span></td>
+                        <td>0</td>
+                        <td>0.0</td>
+                        <td>No</td>
+                    </tr>
+                    
+                    <tr data-table="public.vehicle_serviceinquiryinvoiceitem" class="">
+                        <td>public</td>
+                        <td>vehicle_serviceinquiryinvoiceitem</td>
+                        <td><span class="badge badge-table">table</span></td>
+                        <td>0</td>
+                        <td>0.0</td>
+                        <td>No</td>
+                    </tr>
+                    
+                    <tr data-table="public.vehicle_serviceinquiryphoto" class="">
+                        <td>public</td>
+                        <td>vehicle_serviceinquiryphoto</td>
+                        <td><span class="badge badge-table">table</span></td>
+                        <td>10</td>
+                        <td>0.0</td>
+                        <td>No</td>
+                    </tr>
+                    
+                    <tr data-table="public.vehicle_vehicleaccidentreport" class="">
+                        <td>public</td>
+                        <td>vehicle_vehicleaccidentreport</td>
+                        <td><span class="badge badge-table">table</span></td>
+                        <td>30</td>
+                        <td>0.0</td>
+                        <td>No</td>
+                    </tr>
+                    
+                    <tr data-table="public.vehicle_vehiclecard" class="">
+                        <td>public</td>
+                        <td>vehicle_vehiclecard</td>
+                        <td><span class="badge badge-table">table</span></td>
+                        <td>206</td>
+                        <td>0.0</td>
+                        <td>No</td>
+                    </tr>
+                    
+                    <tr data-table="public.vehicle_vehicleoperatingcost" class="">
+                        <td>public</td>
+                        <td>vehicle_vehicleoperatingcost</td>
+                        <td><span class="badge badge-table">table</span></td>
+                        <td>9</td>
+                        <td>0.0</td>
+                        <td>No</td>
+                    </tr>
+                    
+                    <tr data-table="public.vehicle_vehicleserviceinquiry" class="">
+                        <td>public</td>
+                        <td>vehicle_vehicleserviceinquiry</td>
+                        <td><span class="badge badge-table">table</span></td>
+                        <td>175</td>
+                        <td>0.0</td>
+                        <td>No</td>
+                    </tr>
+                    
+                    <tr data-table="public.workflows_datainterval" class="">
+                        <td>public</td>
+                        <td>workflows_datainterval</td>
+                        <td><span class="badge badge-table">table</span></td>
+                        <td>2</td>
+                        <td>0.0</td>
+                        <td>No</td>
+                    </tr>
+                    
+                    <tr data-table="public.workflows_dataresetlog" class="">
+                        <td>public</td>
+                        <td>workflows_dataresetlog</td>
+                        <td><span class="badge badge-table">table</span></td>
+                        <td>0</td>
+                        <td>0.0</td>
+                        <td>No</td>
                     </tr>
                     
                 </tbody>
             </table>
         </div>
     </div>
+
+    <div id="table-modal" class="modal">
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <h2 id="modal-title">Table Growth Chart</h2>
+            <div class="chart-container">
+                <canvas id="growth-chart"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const logs = {"public.account_emailaddress": [{"date": "2026-01-26", "rows": 0, "size": 0.0}], "public.account_emailconfirmation": [{"date": "2026-01-26", "rows": 0, "size": 0.0}], "public.announcement_attachments": [{"date": "2026-01-26", "rows": 0, "size": 0.0}], "public.announcement_read_statuses": [{"date": "2026-01-26", "rows": 0, "size": 0.0}], "public.announcements": [{"date": "2026-01-26", "rows": 0, "size": 0.0}], "public.approval_request_history": [{"date": "2026-01-26", "rows": 142, "size": 0.0}], "public.approval_requests": [{"date": "2026-01-26", "rows": 136, "size": 0.0}], "public.approval_staged_objects": [{"date": "2026-01-26", "rows": 0, "size": 0.0}], "public.approval_step_actions": [{"date": "2026-01-26", "rows": 0, "size": 0.0}], "public.approval_steps": [{"date": "2026-01-26", "rows": 135, "size": 0.0}], "public.approval_steps_approvers": [{"date": "2026-01-26", "rows": 900, "size": 0.0}], "public.approval_workflow_steps": [{"date": "2026-01-26", "rows": 0, "size": 0.0}], "public.approval_workflow_steps_approvers": [{"date": "2026-01-26", "rows": 0, "size": 0.0}], "public.approval_workflows": [{"date": "2026-01-26", "rows": 0, "size": 0.0}], "public.auth_group": [{"date": "2026-01-26", "rows": 0, "size": 0.0}], "public.auth_group_permissions": [{"date": "2026-01-26", "rows": 0, "size": 0.0}], "public.auth_permission": [{"date": "2026-01-26", "rows": 204, "size": 0.0}], "public.authtoken_token": [{"date": "2026-01-26", "rows": 151, "size": 0.0}], "public.company": [{"date": "2026-01-26", "rows": 1, "size": 0.0}], "public.core_businessunit": [{"date": "2026-01-26", "rows": 8, "size": 0.0}], "public.core_client": [{"date": "2026-01-26", "rows": 11, "size": 0.0}], "public.core_contracttype": [{"date": "2026-01-26", "rows": 0, "size": 0.0}], "public.core_department": [{"date": "2026-01-26", "rows": 4, "size": 0.0}], "public.core_fleet": [{"date": "2026-01-26", "rows": 30, "size": 0.0}], "public.core_historicaluser": [{"date": "2026-01-26", "rows": 2772, "size": 0.0}], "public.core_position": [{"date": "2026-01-26", "rows": 3, "size": 0.0}], "public.core_user": [{"date": "2026-01-26", "rows": 267, "size": 0.0}], "public.dashboard_additionaloption": [{"date": "2026-01-26", "rows": 0, "size": 0.0}], "public.dashboard_dashboarddata": [{"date": "2026-01-26", "rows": 170, "size": 0.0}], "public.dashboard_dashboarddata_delivery_logs": [{"date": "2026-01-26", "rows": 69, "size": 0.0}], "public.dashboard_dashboarddata_google_fitness_datas": [{"date": "2026-01-26", "rows": 559, "size": 0.0}], "public.dashboard_device": [{"date": "2026-01-26", "rows": 6, "size": 0.0}], "public.dashboard_diagnostic": [{"date": "2026-01-26", "rows": 47215, "size": 0.03}], "public.dashboard_driver": [{"date": "2026-01-26", "rows": 0, "size": 0.0}], "public.dashboard_faultcode": [{"date": "2026-01-26", "rows": 261, "size": 0.0}], "public.dashboard_googlefitnessdata": [{"date": "2026-01-26", "rows": 57083, "size": 0.03}], "public.dashboard_handoverchecklistitem": [{"date": "2026-01-26", "rows": 38, "size": 0.0}], "public.dashboard_handoverchecklistresponse": [{"date": "2026-01-26", "rows": 114, "size": 0.0}], "public.dashboard_handoverchecklisttemplate": [{"date": "2026-01-26", "rows": 6, "size": 0.0}], "public.dashboard_handoverphoto": [{"date": "2026-01-26", "rows": 13, "size": 0.0}], "public.dashboard_handoverrecord": [{"date": "2026-01-26", "rows": 39, "size": 0.0}], "public.dashboard_mapping": [{"date": "2026-01-26", "rows": 4, "size": 0.0}], "public.dashboard_terminal": [{"date": "2026-01-26", "rows": 197, "size": 0.01}], "public.dashboard_terminal_additional_options": [{"date": "2026-01-26", "rows": 234, "size": 0.0}], "public.dashboard_terminalfleetchangelog": [{"date": "2026-01-26", "rows": 249, "size": 0.0}], "public.dashboard_terminaloptionchangelog": [{"date": "2026-01-26", "rows": 0, "size": 0.0}], "public.dashboard_terminaluserchangelog": [{"date": "2026-01-26", "rows": 338, "size": 0.0}], "public.dashboard_tid": [{"date": "2026-01-26", "rows": 900505, "size": 0.34}], "public.dashboard_topoptionchoice": [{"date": "2026-01-26", "rows": 0, "size": 0.0}], "public.dashboard_truckdata": [{"date": "2026-01-26", "rows": 0, "size": 54.87}], "public.dashboard_vehiclemodel": [{"date": "2026-01-26", "rows": 11, "size": 0.0}], "public.delivery_deliverylist": [{"date": "2026-01-26", "rows": 6, "size": 0.0}], "public.delivery_deliverylistshippingaddress": [{"date": "2026-01-26", "rows": 137, "size": 0.0}], "public.delivery_deliverylog": [{"date": "2026-01-26", "rows": 2114, "size": 0.0}], "public.delivery_stophistory": [{"date": "2026-01-26", "rows": 0, "size": 0.0}], "public.django_admin_log": [{"date": "2026-01-26", "rows": 475606, "size": 0.08}], "public.django_content_type": [{"date": "2026-01-26", "rows": 0, "size": 0.0}], "public.django_migrations": [{"date": "2026-01-26", "rows": 305, "size": 0.0}], "public.django_session": [{"date": "2026-01-26", "rows": 281, "size": 0.0}], "public.django_site": [{"date": "2026-01-26", "rows": 0, "size": 0.0}], "public.documents_accountinformation": [{"date": "2026-01-26", "rows": 798, "size": 0.0}], "public.documents_additionaladjustment": [{"date": "2026-01-26", "rows": 705, "size": 0.0}], "public.documents_annualleave": [{"date": "2026-01-26", "rows": 143, "size": 0.0}], "public.documents_annualleaveusage": [{"date": "2026-01-26", "rows": 100, "size": 0.0}], "public.documents_attendance": [{"date": "2026-01-26", "rows": 40997, "size": 0.03}], "public.documents_businessregistrationinformation": [{"date": "2026-01-26", "rows": 1113, "size": 0.0}], "public.documents_claimlist": [{"date": "2026-01-26", "rows": 319, "size": 0.0}], "public.documents_contracttypechangelog": [{"date": "2026-01-26", "rows": 341, "size": 0.0}], "public.documents_dailysettlement": [{"date": "2026-01-26", "rows": 56234, "size": 0.08}], "public.documents_document": [{"date": "2026-01-26", "rows": 904, "size": 0.0}], "public.documents_evdeliveryfile": [{"date": "2026-01-26", "rows": 7, "size": 0.0}], "public.documents_evdeliverylog": [{"date": "2026-01-26", "rows": 113371, "size": 0.06}], "public.documents_fleetchangelog": [{"date": "2026-01-26", "rows": 0, "size": 0.0}], "public.documents_group": [{"date": "2026-01-26", "rows": 24, "size": 0.0}], "public.documents_groupchangelog": [{"date": "2026-01-26", "rows": 0, "size": 0.0}], "public.documents_groupsettlement": [{"date": "2026-01-26", "rows": 2039, "size": 0.0}], "public.documents_historicaldailysettlement": [{"date": "2026-01-26", "rows": 1162134, "size": 0.73}], "public.documents_historicaldocument": [{"date": "2026-01-26", "rows": 2122, "size": 0.0}], "public.documents_historicalgroupsettlement": [{"date": "2026-01-26", "rows": 32813, "size": 0.01}], "public.documents_historicalmonthlysettlement": [{"date": "2026-01-26", "rows": 17907, "size": 0.02}], "public.documents_historicalsettlementpolicy": [{"date": "2026-01-26", "rows": 258, "size": 0.0}], "public.documents_incentive": [{"date": "2026-01-26", "rows": 72, "size": 0.0}], "public.documents_latedeliverylog": [{"date": "2026-01-26", "rows": 4764, "size": 0.0}], "public.documents_monthlysettlement": [{"date": "2026-01-26", "rows": 1467, "size": 0.0}], "public.documents_outsourcinghistory": [{"date": "2026-01-26", "rows": 5129, "size": 0.0}], "public.documents_price": [{"date": "2026-01-26", "rows": 8, "size": 0.0}], "public.documents_settlementovertimepolicy": [{"date": "2026-01-26", "rows": 4, "size": 0.0}], "public.documents_settlementpolicy": [{"date": "2026-01-26", "rows": 135, "size": 0.0}], "public.documents_systemconfig": [{"date": "2026-01-26", "rows": 20, "size": 0.0}], "public.documents_team": [{"date": "2026-01-26", "rows": 10, "size": 0.0}], "public.documents_vehichlerentalfee": [{"date": "2026-01-26", "rows": 16, "size": 0.0}], "public.driver_location_driverlocation": [{"date": "2026-01-26", "rows": 0, "size": 0.09}], "public.email_service_emaillog": [{"date": "2026-01-26", "rows": 254, "size": 0.0}], "public.email_service_emailtemplate": [{"date": "2026-01-26", "rows": 0, "size": 0.0}], "public.invoice_invoice": [{"date": "2026-01-26", "rows": 0, "size": 0.0}], "public.invoice_invoiceocrconfig": [{"date": "2026-01-26", "rows": 0, "size": 0.0}], "public.invoice_invoiceprocessinglog": [{"date": "2026-01-26", "rows": 0, "size": 0.0}], "public.mqtt_mqttdata": [{"date": "2026-01-26", "rows": 0, "size": 2.47}], "public.mqtt_sensor": [{"date": "2026-01-26", "rows": 0, "size": 0.0}], "public.notifications": [{"date": "2026-01-26", "rows": 4274, "size": 0.0}], "public.otp_auth_otpverification": [{"date": "2026-01-26", "rows": 85, "size": 0.0}], "public.parking_csv_upload": [{"date": "2026-01-26", "rows": 0, "size": 0.0}], "public.push_notification_logs": [{"date": "2026-01-26", "rows": 2905, "size": 0.0}], "public.push_notification_templates": [{"date": "2026-01-26", "rows": 0, "size": 0.0}], "public.recommended_parking": [{"date": "2026-01-26", "rows": 9188, "size": 0.02}], "public.schedule_attendancedetaillog": [{"date": "2026-01-26", "rows": 1344, "size": 0.0}], "public.schedule_blelog": [{"date": "2026-01-26", "rows": 0, "size": 0.09}], "public.schedule_cameralog": [{"date": "2026-01-26", "rows": 0, "size": 0.01}], "public.schedule_driversteplog": [{"date": "2026-01-26", "rows": 0, "size": 0.01}], "public.schedule_drivervehiclematch": [{"date": "2026-01-26", "rows": 432, "size": 0.0}], "public.schedule_leaverequest": [{"date": "2026-01-26", "rows": 0, "size": 0.0}], "public.schedule_monthlyworkdays": [{"date": "2026-01-26", "rows": 83, "size": 0.0}], "public.schedule_nationalholiday": [{"date": "2026-01-26", "rows": 0, "size": 0.0}], "public.schedule_shiftrequest": [{"date": "2026-01-26", "rows": 0, "size": 0.0}], "public.schedule_shiftschedule": [{"date": "2026-01-26", "rows": 91, "size": 0.0}], "public.schedule_vehicleschedule": [{"date": "2026-01-26", "rows": 53, "size": 0.0}], "public.social_auth_socialaccount": [{"date": "2026-01-26", "rows": 91, "size": 0.0}], "public.socialaccount_socialaccount": [{"date": "2026-01-26", "rows": 0, "size": 0.0}], "public.socialaccount_socialapp": [{"date": "2026-01-26", "rows": 0, "size": 0.0}], "public.socialaccount_socialapp_sites": [{"date": "2026-01-26", "rows": 0, "size": 0.0}], "public.socialaccount_socialtoken": [{"date": "2026-01-26", "rows": 0, "size": 0.0}], "public.talentpool_candidate": [{"date": "2026-01-26", "rows": 6, "size": 0.0}], "public.talentpool_candidate_tag": [{"date": "2026-01-26", "rows": 0, "size": 0.0}], "public.talentpool_status": [{"date": "2026-01-26", "rows": 0, "size": 0.0}], "public.talentpool_status_change": [{"date": "2026-01-26", "rows": 37, "size": 0.0}], "public.talentpool_tag": [{"date": "2026-01-26", "rows": 0, "size": 0.0}], "public.talentpool_timeline": [{"date": "2026-01-26", "rows": 0, "size": 0.0}], "public.ticket_ticket": [{"date": "2026-01-26", "rows": 268, "size": 0.0}], "public.ticket_ticketresponse": [{"date": "2026-01-26", "rows": 171, "size": 0.0}], "public.tip_deliverylocation": [{"date": "2026-01-26", "rows": 29, "size": 0.0}], "public.tip_entrance": [{"date": "2026-01-26", "rows": 51020, "size": 0.03}], "public.tip_exit": [{"date": "2026-01-26", "rows": 0, "size": 0.0}], "public.tip_feedbackmarker": [{"date": "2026-01-26", "rows": 0, "size": 0.0}], "public.tip_parkinglot": [{"date": "2026-01-26", "rows": 51024, "size": 0.04}], "public.tip_recommendedparkingarea": [{"date": "2026-01-26", "rows": 0, "size": 0.0}], "public.tip_restrictedarea": [{"date": "2026-01-26", "rows": 100, "size": 0.0}], "public.tip_stopreport": [{"date": "2026-01-26", "rows": 121, "size": 0.0}], "public.tip_tip": [{"date": "2026-01-26", "rows": 55813, "size": 0.1}], "public.tip_tipfavorite": [{"date": "2026-01-26", "rows": 40, "size": 0.0}], "public.tip_tipphoto": [{"date": "2026-01-26", "rows": 54, "size": 0.0}], "public.user_fcm_tokens": [{"date": "2026-01-26", "rows": 165, "size": 0.0}], "public.vehicle_accidentreportphoto": [{"date": "2026-01-26", "rows": 0, "size": 0.0}], "public.vehicle_serviceinquiryinvoice": [{"date": "2026-01-26", "rows": 0, "size": 0.0}], "public.vehicle_serviceinquiryinvoiceitem": [{"date": "2026-01-26", "rows": 0, "size": 0.0}], "public.vehicle_serviceinquiryphoto": [{"date": "2026-01-26", "rows": 10, "size": 0.0}], "public.vehicle_vehicleaccidentreport": [{"date": "2026-01-26", "rows": 30, "size": 0.0}], "public.vehicle_vehiclecard": [{"date": "2026-01-26", "rows": 206, "size": 0.0}], "public.vehicle_vehicleoperatingcost": [{"date": "2026-01-26", "rows": 9, "size": 0.0}], "public.vehicle_vehicleserviceinquiry": [{"date": "2026-01-26", "rows": 175, "size": 0.0}], "public.workflows_datainterval": [{"date": "2026-01-26", "rows": 2, "size": 0.0}], "public.workflows_dataresetlog": [{"date": "2026-01-26", "rows": 0, "size": 0.0}]};
+        let chart = null;
+
+        // Modal elements
+        const modal = document.getElementById('table-modal');
+        const closeBtn = document.querySelector('.close');
+
+        // Close modal
+        closeBtn.onclick = function() {
+            modal.style.display = "none";
+        }
+        window.onclick = function(event) {
+            if (event.target == modal) {
+                modal.style.display = "none";
+            }
+        }
+
+        // Table row click
+        document.querySelectorAll('#tables-table tbody tr').forEach(row => {
+            row.addEventListener('click', function() {
+                const tableKey = this.getAttribute('data-table');
+                const tableLogs = logs[tableKey];
+                
+                if (!tableLogs || tableLogs.length === 0) return;
+
+                document.getElementById('modal-title').textContent = `Growth Chart: ${tableKey}`;
+
+                if (chart) chart.destroy();
+
+                const labels = tableLogs.map(log => log.date);
+                const sizeData = tableLogs.map(log => log.size);
+
+                const ctx = document.getElementById('growth-chart').getContext('2d');
+                chart = new Chart(ctx, {
+                    type: 'line',
+                    data: {
+                        labels: labels,
+                        datasets: [
+                            {
+                                label: 'Size (GB)',
+                                data: sizeData,
+                                borderColor: 'rgb(255, 99, 132)',
+                                backgroundColor: 'rgba(255, 99, 132, 0.1)',
+                                borderWidth: 2,
+                                tension: 0.1,
+                                fill: true
+                            }
+                        ]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        interaction: {
+                            mode: 'index',
+                            intersect: false,
+                        },
+                        plugins: {
+                            tooltip: {
+                                callbacks: {
+                                    label: function(context) {
+                                        return context.parsed.y + ' GB';
+                                    }
+                                }
+                            }
+                        },
+                        scales: {
+                            y: {
+                                type: 'linear',
+                                display: true,
+                                beginAtZero: true,
+                                title: {
+                                    display: true,
+                                    text: 'Size (GB)'
+                                },
+                                ticks: {
+                                    callback: function(value) {
+                                        return value + ' GB';
+                                    }
+                                }
+                            }
+                        }
+                    }
+                });
+
+                modal.style.display = "block";
+            });
+        });
+    </script>
+
+<script>
+(function () {
+  function getCellValue(tr, idx) {
+    return tr.children[idx].innerText.trim();
+  }
+
+  function comparer(idx, asc) {
+    return function (a, b) {
+      const v1 = getCellValue(asc ? a : b, idx);
+      const v2 = getCellValue(asc ? b : a, idx);
+
+      const n1 = parseFloat(v1.replace(/[^0-9.-]/g, ''));
+      const n2 = parseFloat(v2.replace(/[^0-9.-]/g, ''));
+
+      if (!isNaN(n1) && !isNaN(n2)) return n1 - n2;
+      return v1.localeCompare(v2, undefined, {numeric: true, sensitivity: 'base'});
+    };
+  }
+
+  document.addEventListener('DOMContentLoaded', function () {
+    document.querySelectorAll('table thead th').forEach(function (th, idx) {
+      let asc = true;
+      th.style.cursor = 'pointer';
+      th.addEventListener('click', function () {
+        const table = th.closest('table');
+        const tbody = table.querySelector('tbody');
+        Array.from(tbody.querySelectorAll('tr'))
+          .sort(comparer(idx, asc = !asc))
+          .forEach(tr => tbody.appendChild(tr));
+      });
+    });
+  });
+})();
+</script>
+
 </body>
 </html>
