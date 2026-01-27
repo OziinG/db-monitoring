@@ -1,30 +1,48 @@
 #!/bin/bash
 set -e
 
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+cd "$SCRIPT_DIR"
+
 # Install dependencies if needed
 pip install psycopg2-binary python-dotenv jinja2
 
-# 1. Collect data
-cd src
-python collect_metadata.py
-cd ..
+# 1. Ensure we're on main branch
+git checkout main
 
-# 2. Generate HTML
-cd src
-python generate_static_html.py
-cd ..
+# 2. Fetch gh-pages and extract existing SQLite file
+git fetch origin gh-pages 2>/dev/null || true
+if git show origin/gh-pages:db_monitoring.sqlite > /dev/null 2>&1; then
+    echo "Preserving existing database history..."
+    git show origin/gh-pages:db_monitoring.sqlite > src/db_monitoring.sqlite
+fi
 
-# 3. Switch to gh-pages branch
-git checkout -B gh-pages
+# 3. Collect new data (appends to existing SQLite)
+python src/collect_metadata.py
 
-# 4. Add only deployable files
-git add index.html README.md .gitignore
+# 4. Generate HTML
+python src/generate_static_html.py
 
-# 5. Commit
-git commit -m "Deploy static dashboard $(date)"
+# 5. Switch to gh-pages branch
+if git show-ref --verify --quiet refs/heads/gh-pages; then
+    git checkout gh-pages
+    git pull origin gh-pages --no-rebase 2>/dev/null || true
+else
+    git checkout --orphan gh-pages
+fi
 
-# 6. Push
-git push origin gh-pages --force
+# 7. Copy updated files from main
+git checkout main -- index.html README.md .gitignore
+cp src/db_monitoring.sqlite db_monitoring.sqlite
 
-# 7. Switch back
+# 8. Add updated files
+git add -f index.html README.md .gitignore db_monitoring.sqlite
+
+# 9. Commit
+git commit -m "Deploy static dashboard $(date)" || echo "No changes to commit"
+
+# 10. Push (without --force to preserve history)
+git push origin gh-pages
+
+# 11. Switch back to main
 git checkout main
