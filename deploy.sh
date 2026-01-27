@@ -24,10 +24,12 @@ python src/collect_metadata.py
 python src/generate_static_html.py
 
 # 5. Switch to gh-pages branch
-git checkout gh-pages 2>/dev/null || git checkout --orphan gh-pages
-
-# 6. Pull latest to preserve history
-git pull origin gh-pages --no-rebase 2>/dev/null || true
+if git show-ref --verify --quiet refs/heads/gh-pages; then
+    git checkout gh-pages
+    git pull origin gh-pages --no-rebase 2>/dev/null || true
+else
+    git checkout --orphan gh-pages
+fi
 
 # 7. Copy updated files from main
 git checkout main -- index.html README.md .gitignore
