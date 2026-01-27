@@ -21,6 +21,7 @@ src/
 docker-compose.yml
 Dockerfile
 docker-entrypoint.sh
+*.sh
 
 # OS
 .DS_Store
