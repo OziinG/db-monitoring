@@ -49,9 +49,16 @@ def _sqlite_init(conn: sqlite3.Connection):
             schema_name TEXT,
             date TEXT,
             row_count INTEGER,
-            table_size INTEGER
+            table_size INTEGER,
+            sample_count INTEGER DEFAULT 1
         )
     """)
+
+    # Migration: Add sample_count column if it doesn't exist
+    try:
+        conn.execute("ALTER TABLE table_logs ADD COLUMN sample_count INTEGER DEFAULT 1")
+    except sqlite3.OperationalError:
+        pass  # Column already exists
 
     # 4. 실행 정보
     conn.execute("""
@@ -193,13 +200,34 @@ def collect_prod_data():
         chunks_data
     )
 
-    # C. logs snapshot (tables_data 기준만 저장)
+    # C. logs snapshot (tables_data 기준만 저장 - 일 평균 계산)
     today = datetime.now().strftime("%Y-%m-%d")
-    sqlite_conn.execute("DELETE FROM table_logs WHERE date = ?", (today,))
-    sqlite_conn.executemany(
-        "INSERT INTO table_logs(table_name, schema_name, date, row_count, table_size) VALUES (?, ?, ?, ?, ?)",
-        [(n, s, today, r, sz) for (n, s, _, r, _, sz) in tables_data]
-    )
+
+    for name, schema, _, rows, _, size in tables_data:
+        # 기존 데이터 확인
+        cursor = sqlite_conn.execute(
+            "SELECT row_count, table_size, sample_count FROM table_logs WHERE table_name = ? AND schema_name = ? AND date = ?",
+            (name, schema, today)
+        )
+        existing = cursor.fetchone()
+
+        if existing:
+            # 평균 계산: new_avg = (old_avg * old_count + new_value) / (old_count + 1)
+            old_rows, old_size, old_count = existing
+            new_count = old_count + 1
+            new_avg_rows = int((old_rows * old_count + rows) / new_count)
+            new_avg_size = int((old_size * old_count + size) / new_count)
+
+            sqlite_conn.execute(
+                "UPDATE table_logs SET row_count = ?, table_size = ?, sample_count = ? WHERE table_name = ? AND schema_name = ? AND date = ?",
+                (new_avg_rows, new_avg_size, new_count, name, schema, today)
+            )
+        else:
+            # 새로 삽입
+            sqlite_conn.execute(
+                "INSERT INTO table_logs(table_name, schema_name, date, row_count, table_size, sample_count) VALUES (?, ?, ?, ?, ?, ?)",
+                (name, schema, today, rows, size, 1)
+            )
 
     # D. run_info
     sqlite_conn.execute("DELETE FROM run_info")
