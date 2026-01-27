@@ -10,18 +10,20 @@ venv/
 
 # DB / Data
 *.sqlite
+!src/db_monitoring.sqlite
 *.db
 data/
 logs/
 
-# Local development code
-src/
+# Local development code (allow specific files)
+# src/  # Commented out to allow tracking Python scripts and SQLite
 
 # Docker
 docker-compose.yml
 Dockerfile
 docker-entrypoint.sh
 *.sh
+!deploy.sh
 
 # OS
 .DS_Store

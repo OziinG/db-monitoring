@@ -5,7 +5,6 @@ on:
     # Run every hour
     - cron: '0 * * * *'
 
-  # Manual trigger
   workflow_dispatch:
     inputs:
       reason:
@@ -14,36 +13,31 @@ on:
         default: 'Manual trigger'
 
 permissions:
-  contents: write  # Required for pushing to gh-pages
+  contents: write
 
 jobs:
   deploy:
     runs-on: ubuntu-latest
 
     steps:
-      # 1. Checkout main branch
       - name: Checkout repository
         uses: actions/checkout@v4
         with:
           ref: main
-          fetch-depth: 0  # Full history for gh-pages access
           token: ${{ secrets.GITHUB_TOKEN }}
 
-      # 2. Set up Python
       - name: Set up Python 3.9
         uses: actions/setup-python@v4
         with:
           python-version: '3.9'
           cache: 'pip'
 
-      # 3. Install dependencies
-      - name: Install Python dependencies
+      - name: Install dependencies
         run: |
           pip install --upgrade pip
           pip install -r requirements.txt
 
-      # 4. Create .env file from secrets
-      - name: Create environment file
+      - name: Create .env file
         run: |
           cat > .env << EOF
           PROD_DB_HOST=${{ secrets.PROD_DB_HOST }}
@@ -53,64 +47,23 @@ jobs:
           PROD_DB_PASSWORD=${{ secrets.PROD_DB_PASSWORD }}
           EOF
 
-      # 5. Configure Git
-      - name: Configure Git
-        run: |
-          git config --global user.name "github-actions[bot]"
-          git config --global user.email "github-actions[bot]@users.noreply.github.com"
-
-      # 6. Fetch gh-pages and preserve SQLite history
-      - name: Preserve existing database history
-        run: |
-          git fetch origin gh-pages 2>/dev/null || true
-          if git show origin/gh-pages:db_monitoring.sqlite > /dev/null 2>&1; then
-            echo "Preserving existing database history..."
-            git show origin/gh-pages:db_monitoring.sqlite > src/db_monitoring.sqlite
-          else
-            echo "No existing database found, starting fresh"
-          fi
-
-      # 7. Collect metadata from PostgreSQL
       - name: Collect database metadata
         run: python src/collect_metadata.py
-        env:
-          PROD_DB_HOST: ${{ secrets.PROD_DB_HOST }}
-          PROD_DB_PORT: ${{ secrets.PROD_DB_PORT }}
-          PROD_DB_NAME: ${{ secrets.PROD_DB_NAME }}
-          PROD_DB_USER: ${{ secrets.PROD_DB_USER }}
-          PROD_DB_PASSWORD: ${{ secrets.PROD_DB_PASSWORD }}
 
-      # 8. Generate static HTML
-      - name: Generate static HTML dashboard
+      - name: Generate static HTML
         run: python src/generate_static_html.py
 
-      # 9. Deploy to gh-pages
-      - name: Deploy to GitHub Pages
+      - name: Commit and push changes
         run: |
-          # Check if gh-pages branch exists
-          if git show-ref --verify --quiet refs/heads/gh-pages; then
-            git checkout gh-pages
-            git pull origin gh-pages --no-rebase 2>/dev/null || true
-          else
-            git checkout --orphan gh-pages
-          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
 
-          # Copy updated files from main
-          git checkout main -- index.html README.md .gitignore
-          cp src/db_monitoring.sqlite db_monitoring.sqlite
+          git add src/db_monitoring.sqlite index.html
 
-          # Stage files
-          git add -f index.html README.md .gitignore db_monitoring.sqlite
-
-          # Commit changes
-          REASON="${{ github.event.inputs.reason || 'Hourly scheduled deployment' }}"
-          git commit -m "Deploy dashboard $(date +'%Y-%m-%d %H:%M:%S UTC') - ${REASON}" || {
+          REASON="${{ github.event.inputs.reason || 'Hourly update' }}"
+          git commit -m "Update dashboard $(date +'%Y-%m-%d %H:%M:%S UTC') - ${REASON}" || {
             echo "No changes to commit"
             exit 0
           }
 
-          # Push to gh-pages
-          git push origin gh-pages
-
-          # Return to main branch
-          git checkout main
+          git push origin main
