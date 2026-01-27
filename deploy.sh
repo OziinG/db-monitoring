@@ -4,8 +4,14 @@ set -e
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 cd "$SCRIPT_DIR"
 
-# Install dependencies if needed
-pip install psycopg2-binary python-dotenv jinja2
+# CI Detection
+IS_CI="${CI:-false}"
+
+# Install dependencies (skip in CI, workflow handles it)
+if [ "$IS_CI" != "true" ]; then
+    echo "Local mode: Installing dependencies..."
+    pip install psycopg2-binary python-dotenv jinja2
+fi
 
 # 1. Ensure we're on main branch
 git checkout main
